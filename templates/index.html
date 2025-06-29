@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IcyRoute - Smart Winter Route Planning</title>
+    <title>IcyRoute - Smart Winter Route Planning | Google Maps Platform Awards</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
         }
 
@@ -24,9 +24,9 @@
         }
 
         .sidebar {
-            width: 400px;
+            width: 420px;
             background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            box-shadow: 2px 0 20px rgba(0,0,0,0.15);
             overflow-y: auto;
             z-index: 1000;
         }
@@ -42,109 +42,180 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 50%, #3498db 100%);
             color: white;
-            padding: 20px;
+            padding: 25px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="1" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
+            animation: sparkle 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
         }
 
         .header h1 {
-            font-size: 1.8em;
-            margin-bottom: 5px;
+            font-size: 2em;
+            margin-bottom: 8px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
         }
 
         .header p {
-            font-size: 0.9em;
+            font-size: 1em;
             opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .awards-badge {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 8px;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
         }
 
         .sidebar-content {
-            padding: 20px;
+            padding: 25px;
+        }
+
+        .demo-banner {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .demo-banner h3 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .demo-banner p {
+            font-size: 0.9em;
+            opacity: 0.95;
         }
 
         .route-form {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #dee2e6;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
+            margin-bottom: 8px;
+            font-weight: 700;
             color: #2c3e50;
-            font-size: 0.9em;
+            font-size: 0.95em;
         }
 
         input[type="text"], select {
             width: 100%;
-            padding: 10px;
+            padding: 12px 15px;
             border: 2px solid #e9ecef;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: white;
         }
 
         input[type="text"]:focus, select:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            transform: translateY(-1px);
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 8px;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 8px;
         }
 
         .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
+            accent-color: #3498db;
         }
 
         .checkbox-group label {
             margin-bottom: 0;
-            font-size: 0.9em;
+            font-size: 0.95em;
+            color: #2c3e50;
         }
 
         .btn {
             background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
-            padding: 12px 20px;
+            padding: 15px 25px;
             border: none;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
             width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
         }
 
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
 
         .loading .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 20px;
         }
 
         @keyframes spin {
@@ -157,223 +228,375 @@
         }
 
         .route-card {
-            background: white;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
+        }
+
+        .route-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--risk-color);
+            transition: width 0.3s ease;
         }
 
         .route-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-color: #3498db;
+        }
+
+        .route-card:hover::before {
+            width: 8px;
         }
 
         .route-card.selected {
             border-color: #3498db;
-            background: #f8f9ff;
+            background: linear-gradient(135deg, #f8f9ff 0%, #e8f4fd 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.2);
         }
 
         .route-card.hidden {
-            opacity: 0.3;
+            opacity: 0.4;
+            transform: scale(0.98);
         }
 
         .route-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .route-title {
-            font-size: 1.1em;
-            font-weight: 600;
+            font-size: 1.2em;
+            font-weight: 700;
             color: #2c3e50;
         }
 
         .risk-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 0.8em;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .risk-minimal { background: #d4edda; color: #155724; }
-        .risk-low { background: #fff3cd; color: #856404; }
-        .risk-medium { background: #f8d7da; color: #721c24; }
-        .risk-high { background: #f5c6cb; color: #721c24; }
+        .risk-minimal { 
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); 
+            color: white; 
+        }
+        .risk-low { 
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); 
+            color: white; 
+        }
+        .risk-medium { 
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); 
+            color: white; 
+        }
+        .risk-high { 
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); 
+            color: white; 
+        }
 
         .route-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 0.9em;
-            margin-bottom: 10px;
+            gap: 15px;
+            font-size: 0.95em;
+            margin-bottom: 15px;
         }
 
         .detail-item {
-            background: #f8f9fa;
-            padding: 8px;
-            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(52, 152, 219, 0.1);
         }
 
         .detail-label {
             font-size: 0.8em;
-            color: #6c757d;
-            margin-bottom: 2px;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .detail-value {
-            font-weight: 600;
+            font-weight: 700;
             color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .risk-details {
+            background: rgba(231, 76, 60, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .risk-details h4 {
+            font-size: 0.9em;
+            color: #e74c3c;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .risk-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            font-size: 0.8em;
+        }
+
+        .risk-stat {
+            text-align: center;
+        }
+
+        .risk-stat-value {
+            font-weight: 700;
+            font-size: 1.2em;
+            color: #e74c3c;
+        }
+
+        .risk-stat-label {
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .route-actions {
             display: flex;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 10px;
+            margin-top: 15px;
         }
 
         .btn-small {
-            padding: 6px 12px;
-            font-size: 0.8em;
-            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 0.85em;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .btn-focus {
-            background: #3498db;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
+        }
+
+        .btn-focus:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
         }
 
         .btn-hide {
-            background: #6c757d;
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
             color: white;
         }
 
+        .btn-hide:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(127, 140, 141, 0.3);
+        }
+
         .demo-section {
-            background: #e8f5e8;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #e8f5e8 0%, #d5e7d5 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #27ae60;
         }
 
         .demo-section h3 {
-            font-size: 1.1em;
-            margin-bottom: 10px;
-            color: #2c3e50;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #27ae60;
+            text-align: center;
+            font-weight: 700;
         }
 
         .demo-routes {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .demo-card {
             background: white;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #27ae60;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: #27ae60;
+            transition: width 0.3s ease;
         }
 
         .demo-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.2);
+        }
+
+        .demo-card:hover::before {
+            width: 6px;
         }
 
         .demo-card h4 {
-            font-size: 0.9em;
-            margin-bottom: 5px;
+            font-size: 1em;
+            margin-bottom: 6px;
             color: #2c3e50;
+            font-weight: 700;
         }
 
         .demo-card p {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+
+        .demo-severity {
             font-size: 0.8em;
-            color: #666;
+            color: #e74c3c;
+            font-weight: 600;
+            font-style: italic;
         }
 
         .legend {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .legend h3 {
-            font-size: 1em;
-            margin-bottom: 10px;
+            font-size: 1.1em;
+            margin-bottom: 15px;
             color: #2c3e50;
+            text-align: center;
+            font-weight: 700;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 12px;
+            margin-bottom: 10px;
             font-size: 0.9em;
+            padding: 8px;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .legend-item:hover {
+            background: rgba(52, 152, 219, 0.05);
         }
 
         .legend-color {
-            width: 20px;
-            height: 4px;
-            border-radius: 2px;
+            width: 25px;
+            height: 6px;
+            border-radius: 3px;
+            flex-shrink: 0;
         }
 
         .warning {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #f39c12;
             color: #856404;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 0.9em;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.95em;
         }
 
         .warning-icon {
-            font-size: 1.1em;
-            margin-right: 8px;
+            font-size: 1.2em;
+            margin-right: 10px;
         }
 
         .map-controls {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
             z-index: 1000;
             background: white;
-            border-radius: 6px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 15px;
+            border: 1px solid #e9ecef;
         }
 
         .control-btn {
             display: block;
             width: 100%;
-            margin-bottom: 5px;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.8em;
-            transition: background 0.2s;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+            font-weight: 600;
         }
 
         .control-btn:hover {
-            background: #e9ecef;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            transform: translateY(-1px);
         }
 
         .control-btn:last-child {
             margin-bottom: 0;
+        }
+
+        .weather-info {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .weather-info h5 {
+            font-size: 0.9em;
+            color: #3498db;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .weather-details {
+            font-size: 0.8em;
+            color: #7f8c8d;
         }
 
         @media (max-width: 768px) {
@@ -383,18 +606,49 @@
             
             .sidebar {
                 width: 100%;
-                height: 50vh;
+                height: 60vh;
                 order: 2;
             }
             
             .map-container {
-                height: 50vh;
+                height: 40vh;
                 order: 1;
             }
             
-            .route-details {
+            .route-details, .risk-stats {
                 grid-template-columns: 1fr;
             }
+
+            .sidebar-content {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+
+        .simulation-info {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .simulation-info h4 {
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .simulation-info p {
+            font-size: 0.85em;
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -403,39 +657,65 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="header">
-                <h1>🚗 IcyRoute</h1>
+                <h1>❄️ IcyRoute</h1>
                 <p>Smart Winter Route Planning</p>
+                <div class="awards-badge">Google Maps Platform Awards</div>
             </div>
 
             <div class="sidebar-content">
+                <!-- Demo Banner -->
+                <div class="demo-banner">
+                    <h3>🎬 WINTER SIMULATION ACTIVE</h3>
+                    <p>Demonstrating historical winter conditions from 2023-2024</p>
+                </div>
+
+                <!-- Historical Data Info -->
+                <div class="simulation-info">
+                    <h4>📅 Historical Weather Data</h4>
+                    <p>This demo uses real winter weather patterns from major storm events to show route variations</p>
+                </div>
+
                 <!-- Warning Section -->
                 <div class="warning">
                     <span class="warning-icon">⚠️</span>
-                    <strong>Safety First:</strong> Always check current road conditions and drive according to weather conditions.
+                    <strong>Safety First:</strong> Always check current road conditions and drive according to weather conditions. This is a demonstration using historical data.
                 </div>
 
                 <!-- Demo Section -->
                 <div class="demo-section">
-                    <h3>🎯 Demo Routes</h3>
+                    <h3>🎯 Historical Winter Events</h3>
                     <div class="demo-routes">
                         <div class="demo-card" onclick="loadDemo('Minneapolis, MN', 'Duluth, MN')">
                             <h4>Minneapolis → Duluth</h4>
-                            <p>Minnesota I-35 ice corridor</p>
+                            <p>I-35 Ice Storm Corridor</p>
+                            <div class="demo-severity">Extreme: January 2024 ice storm</div>
                         </div>
-                        <div class="demo-card" onclick="loadDemo('Buffalo, NY', 'Rochester, NY')">
-                            <h4>Buffalo → Rochester</h4>
-                            <p>Lake effect snow region</p>
+                        <div class="demo-card" onclick="loadDemo('Buffalo, NY', 'Syracuse, NY')">
+                            <h4>Buffalo → Syracuse</h4>
+                            <p>Lake Effect Snow Belt</p>
+                            <div class="demo-severity">Severe: February 2024 lake effect</div>
                         </div>
                         <div class="demo-card" onclick="loadDemo('Detroit, MI', 'Grand Rapids, MI')">
                             <h4>Detroit → Grand Rapids</h4>
-                            <p>Michigan winter conditions</p>
+                            <p>Michigan Freezing Rain</p>
+                            <div class="demo-severity">High: December 2023 ice event</div>
+                        </div>
+                        <div class="demo-card" onclick="loadDemo('Denver, CO', 'Vail, CO')">
+                            <h4>Denver → Vail</h4>
+                            <p>Mountain Pass Blizzard</p>
+                            <div class="demo-severity">Extreme: January 2024 blizzard</div>
+                        </div>
+                        <div class="demo-card" onclick="loadDemo('Fargo, ND', 'Minneapolis, MN')">
+                            <h4>Fargo → Minneapolis</h4>
+                            <p>Arctic Blast Corridor</p>
+                            <div class="demo-severity">Extreme: February 2024 arctic blast</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Route Planning Form -->
                 <div class="route-form">
-                    <h3>🗺️ Plan Your Route</h3>
+                    <h3>🗺️ Plan Your Winter Route</h3>
                     <form id="routeForm">
                         <div class="form-group">
                             <label for="origin">From:</label>
@@ -448,53 +728,54 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="experience">Driving Experience:</label>
+                            <label for="experience">Winter Driving Experience:</label>
                             <select id="experience" name="experience">
                                 <option value="beginner">Beginner - Safest routes only</option>
-                                <option value="intermediate" selected>Intermediate - Some ice OK</option>
-                                <option value="expert">Expert - Show all routes</option>
+                                <option value="intermediate" selected>Intermediate - Some ice acceptable</option>
+                                <option value="expert">Expert - Show all route options</option>
                             </select>
                         </div>
 
                         <div class="checkbox-group">
                             <input type="checkbox" id="avoid_icy" name="avoid_icy" checked>
-                            <label for="avoid_icy">Prioritize safer routes</label>
+                            <label for="avoid_icy">Prioritize ice-safe routes</label>
                         </div>
 
-                        <button type="submit" class="btn">Find Safe Routes</button>
+                        <button type="submit" class="btn">Analyze Winter Routes</button>
                     </form>
                 </div>
 
                 <!-- Loading State -->
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Analyzing weather conditions...</p>
+                    <p><strong>Analyzing Historical Weather Patterns...</strong></p>
+                    <p style="font-size: 0.9em; margin-top: 10px;">Processing winter storm data and route alternatives</p>
                 </div>
 
                 <!-- Route Legend -->
                 <div class="legend" id="legend" style="display: none;">
-                    <h3>🎨 Route Risk Levels</h3>
+                    <h3>🎨 Ice Risk Levels</h3>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #2ecc71;"></div>
-                        <span>Minimal Risk - Safe conditions</span>
+                        <div class="legend-color" style="background: linear-gradient(90deg, #27ae60, #2ecc71);"></div>
+                        <span><strong>Minimal Risk</strong> - Safe winter conditions</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #f39c12;"></div>
-                        <span>Low Risk - Minor ice possible</span>
+                        <div class="legend-color" style="background: linear-gradient(90deg, #f39c12, #e67e22);"></div>
+                        <span><strong>Low Risk</strong> - Minor ice patches possible</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #e67e22;"></div>
-                        <span>Medium Risk - Caution advised</span>
+                        <div class="legend-color" style="background: linear-gradient(90deg, #e67e22, #d35400);"></div>
+                        <span><strong>Medium Risk</strong> - Moderate ice conditions</span>
                     </div>
                     <div class="legend-item">
-                        <div class="legend-color" style="background: #e74c3c;"></div>
-                        <span>High Risk - Dangerous conditions</span>
+                        <div class="legend-color" style="background: linear-gradient(90deg, #e74c3c, #c0392b);"></div>
+                        <span><strong>High Risk</strong> - Dangerous ice conditions</span>
                     </div>
                 </div>
 
                 <!-- Results Section -->
                 <div class="results" id="results">
-                    <h3>🛣️ Route Options</h3>
+                    <h3>🛣️ Winter Route Analysis</h3>
                     <div id="routesList"></div>
                 </div>
             </div>
@@ -509,6 +790,7 @@
                 <button class="control-btn" onclick="showAllRoutes()">Show All Routes</button>
                 <button class="control-btn" onclick="hideAllRoutes()">Hide All Routes</button>
                 <button class="control-btn" onclick="fitMapToRoutes()">Fit to Routes</button>
+                <button class="control-btn" onclick="toggleSatellite()">Toggle Satellite</button>
             </div>
         </div>
     </div>
@@ -519,20 +801,21 @@
         let routeDisplays = [];
         let currentRoutes = [];
         let markers = [];
+        let isSatelliteView = false;
 
-        // Risk level colors
+        // Enhanced risk level colors with gradients
         const RISK_COLORS = {
-            'minimal': '#2ecc71',  // Green
-            'low': '#f39c12',      // Orange
-            'medium': '#e67e22',   // Dark Orange  
-            'high': '#e74c3c'      // Red
+            'minimal': '#2ecc71',
+            'low': '#f39c12',
+            'medium': '#e67e22',
+            'high': '#e74c3c'
         };
 
-        // Initialize Google Maps
+        // Initialize Google Maps with winter styling
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 6,
-                center: { lat: 44.9778, lng: -93.2650 }, // Minneapolis center
+                center: { lat: 44.9778, lng: -93.2650 },
                 mapTypeControl: true,
                 streetViewControl: false,
                 fullscreenControl: true,
@@ -540,34 +823,39 @@
                     {
                         featureType: 'all',
                         elementType: 'geometry.fill',
-                        stylers: [{ color: '#f5f5f5' }]
+                        stylers: [{ color: '#f0f8ff' }]
                     },
                     {
                         featureType: 'water',
                         elementType: 'geometry',
-                        stylers: [{ color: '#e3f2fd' }]
+                        stylers: [{ color: '#b3d9ff' }]
+                    },
+                    {
+                        featureType: 'landscape',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#ffffff' }]
+                    },
+                    {
+                        featureType: 'road.highway',
+                        elementType: 'geometry',
+                        stylers: [{ color: '#e6f3ff' }]
                     }
                 ]
             });
 
             directionsService = new google.maps.DirectionsService();
-
-            // Load demo route on startup
             loadDemo('Minneapolis, MN', 'Duluth, MN');
         }
 
-        // Demo route loader
         function loadDemo(origin, destination) {
             document.getElementById('origin').value = origin;
             document.getElementById('destination').value = destination;
             document.getElementById('experience').value = 'intermediate';
             document.getElementById('avoid_icy').checked = true;
             
-            // Auto-submit the form
             document.getElementById('routeForm').dispatchEvent(new Event('submit'));
         }
 
-        // Form submission handler
         document.getElementById('routeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -578,10 +866,7 @@
                 avoid_icy: document.getElementById('avoid_icy').checked
             };
 
-            // Clear previous routes
             clearAllRoutes();
-
-            // Show loading state
             document.getElementById('loading').style.display = 'block';
             document.getElementById('results').style.display = 'none';
             document.getElementById('legend').style.display = 'none';
@@ -589,9 +874,7 @@
             try {
                 const response = await fetch('/api/routes', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
 
@@ -620,10 +903,10 @@
             currentRoutes = data.routes;
 
             if (data.routes.length === 0) {
-                routesList.innerHTML = '<p>No safe routes found for your experience level. Consider adjusting your settings.</p>';
+                routesList.innerHTML = '<div class="warning"><span class="warning-icon">❌</span><strong>No safe routes found</strong> for your experience level. Consider adjusting your settings or choosing expert mode.</div>';
             } else {
                 data.routes.forEach((route, index) => {
-                    const routeCard = createRouteCard(route, index);
+                    const routeCard = createEnhancedRouteCard(route, index);
                     routesList.appendChild(routeCard);
                 });
             }
@@ -632,18 +915,22 @@
             legend.style.display = 'block';
         }
 
-        function createRouteCard(route, index) {
+        function createEnhancedRouteCard(route, index) {
             const card = document.createElement('div');
             card.className = 'route-card';
             card.dataset.routeIndex = index;
+            card.style.setProperty('--risk-color', RISK_COLORS[route.risk_level]);
             
             const riskClass = `risk-${route.risk_level}`;
             const riskIcon = getRiskIcon(route.risk_level);
             
+            // Sample weather from the route
+            const sampleWeather = route.weather_points[Math.floor(route.weather_points.length / 2)];
+            
             card.innerHTML = `
                 <div class="route-header">
-                    <div class="route-title">Route ${index + 1}</div>
-                    <div class="risk-badge ${riskClass}">${riskIcon} ${route.risk_level}</div>
+                    <div class="route-title">Route ${index + 1}: ${route.summary}</div>
+                    <div class="risk-badge ${riskClass}">${riskIcon} ${route.risk_level.toUpperCase()}</div>
                 </div>
                 
                 <div class="route-details">
@@ -656,22 +943,50 @@
                         <div class="detail-value">${route.duration}</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Ice Risk</div>
+                        <div class="detail-label">Average Risk</div>
                         <div class="detail-value">${Math.round(route.avg_ice_risk * 100)}%</div>
                     </div>
                     <div class="detail-item">
-                        <div class="detail-label">Max Risk</div>
+                        <div class="detail-label">Peak Risk</div>
                         <div class="detail-value">${Math.round(route.max_ice_risk * 100)}%</div>
                     </div>
                 </div>
                 
+                <div class="risk-details">
+                    <h4>⚠️ Risk Analysis</h4>
+                    <div class="risk-stats">
+                        <div class="risk-stat">
+                            <div class="risk-stat-value">${route.high_risk_segments || 0}</div>
+                            <div class="risk-stat-label">High Risk Segments</div>
+                        </div>
+                        <div class="risk-stat">
+                            <div class="risk-stat-value">${Math.round((route.risk_variance || 0) * 100)}</div>
+                            <div class="risk-stat-label">Risk Variation</div>
+                        </div>
+                        <div class="risk-stat">
+                            <div class="risk-stat-value">${route.weather_points.length}</div>
+                            <div class="risk-stat-label">Weather Points</div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${sampleWeather ? `
+                <div class="weather-info">
+                    <h5>🌡️ Sample Weather Conditions</h5>
+                    <div class="weather-details">
+                        ${sampleWeather.weather.temp}°C, ${sampleWeather.weather.description}, 
+                        ${sampleWeather.weather.precipitation}mm precipitation, 
+                        ${sampleWeather.weather.wind_speed}km/h winds
+                    </div>
+                </div>
+                ` : ''}
+                
                 <div class="route-actions">
                     <button class="btn-small btn-focus" onclick="focusRoute(${index})">Focus on Map</button>
-                    <button class="btn-small btn-hide" onclick="toggleRoute(${index})">Hide Route</button>
+                    <button class="btn-small btn-hide" onclick="toggleRoute(${index})">Toggle Route</button>
                 </div>
             `;
             
-            // Add click handler for route selection
             card.addEventListener('click', function(e) {
                 if (!e.target.classList.contains('btn-small')) {
                     selectRoute(index);
@@ -682,28 +997,28 @@
         }
 
         function displayRoutesOnMap(routes, origin, destination) {
-            // Clear existing routes
             clearAllRoutes();
-
-            // Add origin and destination markers
             addLocationMarkers(origin, destination);
 
             routes.forEach((route, index) => {
                 const color = RISK_COLORS[route.risk_level];
+                const strokeWeight = route.risk_level === 'high' ? 8 : 
+                                   route.risk_level === 'medium' ? 7 : 
+                                   route.risk_level === 'low' ? 6 : 5;
                 
                 const directionsRenderer = new google.maps.DirectionsRenderer({
                     map: map,
                     routeIndex: index,
                     polylineOptions: {
                         strokeColor: color,
-                        strokeWeight: 6,
-                        strokeOpacity: 0.8
+                        strokeWeight: strokeWeight,
+                        strokeOpacity: 0.8,
+                        zIndex: routes.length - index // Higher risk routes on top
                     },
-                    suppressMarkers: true, // We'll add custom markers
+                    suppressMarkers: true,
                     preserveViewport: false
                 });
 
-                // Get route from Google Directions
                 directionsService.route({
                     origin: origin,
                     destination: destination,
@@ -713,7 +1028,6 @@
                     if (status === 'OK' && response.routes[index]) {
                         directionsRenderer.setDirections(response);
                         
-                        // Store the renderer
                         routeDisplays.push({
                             renderer: directionsRenderer,
                             visible: true,
@@ -721,39 +1035,81 @@
                             index: index
                         });
 
-                        // Fit map to show all routes after loading the first one
+                        // Add weather markers along the route
+                        addWeatherMarkers(route.weather_points);
+
                         if (index === 0) {
-                            fitMapToRoutes();
+                            setTimeout(fitMapToRoutes, 500);
                         }
                     }
                 });
             });
         }
 
+        function addWeatherMarkers(weatherPoints) {
+            // Add markers for high-risk weather points
+            weatherPoints.forEach((point, index) => {
+                if (point.ice_risk > 0.7 && index % 3 === 0) { // Show every 3rd high-risk point
+                    const marker = new google.maps.Marker({
+                        position: { lat: point.location.lat, lng: point.location.lng },
+                        map: map,
+                        title: `High Risk: ${point.weather.description}`,
+                        icon: {
+                            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" fill="#e74c3c" stroke="white" stroke-width="2"/>
+                                    <text x="12" y="16" text-anchor="middle" fill="white" font-size="12">⚠</text>
+                                </svg>
+                            `),
+                            scaledSize: new google.maps.Size(24, 24),
+                            anchor: new google.maps.Point(12, 12)
+                        }
+                    });
+
+                    const infoWindow = new google.maps.InfoWindow({
+                        content: `
+                            <div style="padding: 10px; max-width: 200px;">
+                                <h4 style="margin: 0 0 8px 0; color: #e74c3c;">High Ice Risk</h4>
+                                <p style="margin: 0; font-size: 14px;">
+                                    <strong>Conditions:</strong> ${point.weather.description}<br>
+                                    <strong>Temperature:</strong> ${point.weather.temp}°C<br>
+                                    <strong>Ice Risk:</strong> ${Math.round(point.ice_risk * 100)}%<br>
+                                    <strong>Precipitation:</strong> ${point.weather.precipitation}mm
+                                </p>
+                            </div>
+                        `
+                    });
+
+                    marker.addListener('click', () => {
+                        infoWindow.open(map, marker);
+                    });
+
+                    markers.push(marker);
+                }
+            });
+        }
+
         function addLocationMarkers(origin, destination) {
-            // Add start marker
             const startMarker = new google.maps.Marker({
-                position: null, // Will be set by geocoding
+                position: null,
                 map: map,
                 title: 'Start: ' + origin,
                 icon: {
                     url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
-                    scaledSize: new google.maps.Size(32, 32)
+                    scaledSize: new google.maps.Size(40, 40)
                 }
             });
 
-            // Add end marker
             const endMarker = new google.maps.Marker({
-                position: null, // Will be set by geocoding
+                position: null,
                 map: map,
                 title: 'Destination: ' + destination,
                 icon: {
                     url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-                    scaledSize: new google.maps.Size(32, 32)
+                    scaledSize: new google.maps.Size(40, 40)
                 }
             });
 
-            // Geocode and set positions
             const geocoder = new google.maps.Geocoder();
             
             geocoder.geocode({ address: origin }, (results, status) => {
@@ -772,34 +1128,42 @@
         }
 
         function selectRoute(index) {
-            // Remove selection from all cards
             document.querySelectorAll('.route-card').forEach(card => {
                 card.classList.remove('selected');
             });
 
-            // Add selection to clicked card
             const selectedCard = document.querySelector(`[data-route-index="${index}"]`);
             if (selectedCard) {
                 selectedCard.classList.add('selected');
+                selectedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
 
-            // Focus on the selected route
             focusRoute(index);
         }
 
         function focusRoute(index) {
-            // Hide all routes except the focused one
             routeDisplays.forEach((display, i) => {
                 if (i === index) {
                     display.renderer.setMap(map);
                     display.visible = true;
+                    
+                    // Highlight the focused route
+                    const route = display.route;
+                    const color = RISK_COLORS[route.risk_level];
+                    display.renderer.setOptions({
+                        polylineOptions: {
+                            strokeColor: color,
+                            strokeWeight: 10,
+                            strokeOpacity: 1.0,
+                            zIndex: 1000
+                        }
+                    });
                 } else {
                     display.renderer.setMap(null);
                     display.visible = false;
                 }
             });
 
-            // Update card visibility
             updateCardVisibility();
         }
 
@@ -812,14 +1176,29 @@
                 display.renderer.setMap(map);
                 display.visible = true;
             }
-
             updateCardVisibility();
         }
 
         function showAllRoutes() {
-            routeDisplays.forEach(display => {
+            routeDisplays.forEach((display, index) => {
                 display.renderer.setMap(map);
                 display.visible = true;
+                
+                // Reset to normal styling
+                const route = display.route;
+                const color = RISK_COLORS[route.risk_level];
+                const strokeWeight = route.risk_level === 'high' ? 8 : 
+                                   route.risk_level === 'medium' ? 7 : 
+                                   route.risk_level === 'low' ? 6 : 5;
+                
+                display.renderer.setOptions({
+                    polylineOptions: {
+                        strokeColor: color,
+                        strokeWeight: strokeWeight,
+                        strokeOpacity: 0.8,
+                        zIndex: routeDisplays.length - index
+                    }
+                });
             });
             updateCardVisibility();
         }
@@ -830,6 +1209,16 @@
                 display.visible = false;
             });
             updateCardVisibility();
+        }
+
+        function toggleSatellite() {
+            if (isSatelliteView) {
+                map.setMapTypeId('roadmap');
+                isSatelliteView = false;
+            } else {
+                map.setMapTypeId('satellite');
+                isSatelliteView = true;
+            }
         }
 
         function updateCardVisibility() {
@@ -863,16 +1252,21 @@
             });
 
             map.fitBounds(bounds);
+            
+            // Adjust zoom to show details but not too close
+            google.maps.event.addListenerOnce(map, 'bounds_changed', function() {
+                if (map.getZoom() > 12) {
+                    map.setZoom(12);
+                }
+            });
         }
 
         function clearAllRoutes() {
-            // Clear route displays
             routeDisplays.forEach(display => {
                 display.renderer.setMap(null);
             });
             routeDisplays = [];
 
-            // Clear markers
             markers.forEach(marker => {
                 marker.setMap(null);
             });
@@ -882,7 +1276,7 @@
         function getRiskIcon(riskLevel) {
             switch(riskLevel) {
                 case 'minimal': return '✅';
-                case 'low': return '⚠️';
+                case 'low': return '⚡';
                 case 'medium': return '🔶';
                 case 'high': return '🚨';
                 default: return '❓';
@@ -895,19 +1289,41 @@
                 <div class="warning">
                     <span class="warning-icon">❌</span>
                     <strong>Error:</strong> ${message}
+                    <br><br>
+                    <small>Please check your internet connection and ensure the addresses are valid.</small>
                 </div>
             `;
             document.getElementById('results').style.display = 'block';
         }
 
-        // Initialize map when page loads
+        // Initialize demo on page load
         window.onload = function() {
-            // Map will be initialized by Google Maps callback
+            console.log('IcyRoute - Google Maps Platform Awards Demo Ready');
+            console.log('Features: Historical winter weather simulation, route risk analysis, driver experience filtering');
         };
+
+        // Add keyboard shortcuts for demo
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        loadDemo('Minneapolis, MN', 'Duluth, MN');
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        loadDemo('Buffalo, NY', 'Syracuse, NY');
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        loadDemo('Detroit, MI', 'Grand Rapids, MI');
+                        break;
+                }
+            }
+        });
     </script>
 
-    <!-- Google Maps JavaScript API -->
-    <!-- API key is securely loaded from environment variable -->
+    <!-- Google Maps JavaScript API with Places and Geometry libraries -->
     <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap&libraries=geometry,places">
     </script>

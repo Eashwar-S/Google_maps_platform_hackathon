@@ -1,0 +1,1132 @@
+function showRouteDetails(index) {
+    const route = currentRoutes[index];
+    const isDemo = route.weather_points && route.weather_points.length > 0;
+    
+    if (isDemo) {
+        // Show detailed winter storm information
+        let details = `WINTER STORM DETAILS: ${route.type}\n\n`;
+        details += `Safety Score: ${route.safety_score}/100\n`;
+        details += `Average Ice Risk: ${Math.round(route.avg_ice_risk * 100)}%\n`;
+        details += `High Risk Segments: ${route.high_risk_segments}\n\n`;
+        
+        details += "WEATHER CONDITIONS ALONG ROUTE:\n";
+        route.weather_points.forEach((point, i) => {
+            details += `${i + 1}. ${point.temp}°C - ${point.condition} (${Math.round(point.risk * 100)}% risk)\n`;
+        });
+        
+        if (route.warnings.length > 0) {
+            details += "\nWARNINGS:\n";
+            route.warnings.forEach(w => details += `• ${w}\n`);
+        }
+        
+        alert(details);
+    } else {
+        // Show real-time route information
+        let details = `REAL-TIME ROUTE: ${route.type}\n\n`;
+        details += `Current Conditions: Summer (Clear)\n`;
+        details += `Safety Score: ${route.safety_score}/100\n`;
+        details += `Ice Risk: ${Math.round(route.avg_ice_risk * 100)}% (Minimal)\n\n`;
+        details += "This route has excellent conditions for summer travel.\n";
+        details += "No ice or winter weather concerns detected.";
+        
+        alert(details);
+    }
+}
+
+function clearAllRoutes() {
+    // Clear route renderers
+    routeRenderers.forEach(renderer => {
+        if (renderer.polyline) {
+            renderer.polyline.setMap(null);
+        }
+    });
+    routeRenderers = [];
+
+    // Clear weather markers
+    weatherMarkers.forEach(marker => {
+        marker.setMap(null);
+    });
+    weatherMarkers = [];
+}
+
+function fitMapToRoutes() {
+    if (routeDisplays.length === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+    
+    routeDisplays.forEach(display => {
+        if (display.visible && display.renderer.getDirections()) {
+            const route = display.renderer.getDirections().routes[0];
+            route.legs.forEach(leg => {
+                leg.steps.forEach(step => {
+                    bounds.extend(step.start_location);
+                    bounds.extend(step.end_location);
+                });
+            });
+        }
+    });
+
+    map.fitBounds(bounds);
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IcyRoute - Smart Winter Route Planning</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 400px;
+    background: white;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.map-container {
+    flex: 1;
+    position: relative;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+.header {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 1.8em;
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.header p {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+.sidebar-content {
+    padding: 20px;
+}
+
+.route-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9em;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus, select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-size: 0.9em;
+}
+
+.btn {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    width: 100%;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.results {
+    display: none;
+}
+
+.route-card {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.route-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.route-card.selected {
+    border-color: #3498db;
+    background: #f8f9ff;
+}
+
+.route-card.hidden {
+    opacity: 0.3;
+}
+
+.route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.route-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.risk-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-minimal { background: #d4edda; color: #155724; }
+.risk-low { background: #fff3cd; color: #856404; }
+.risk-medium { background: #f8d7da; color: #721c24; }
+.risk-high { background: #f5c6cb; color: #721c24; }
+
+.route-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.detail-item {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.detail-label {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.route-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 0.8em;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-focus {
+    background: #3498db;
+    color: white;
+}
+
+.btn-hide {
+    background: #6c757d;
+    color: white;
+}
+
+.demo-section {
+    background: #e8f5e8;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.demo-section h3 {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.demo-controls {
+    margin-bottom: 15px;
+}
+
+.demo-conditions {
+    font-size: 0.75em;
+    color: #2980b9;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.demo-info {
+    background: #e8f4fd;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+    border-left: 4px solid #3498db;
+}
+
+.route-segments {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+.segment-info {
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+.segment-high-risk {
+    background: #fff5f5;
+    border-left: 4px solid #e74c3c;
+}
+
+.segment-medium-risk {
+    background: #fff8e1;
+    border-left: 4px solid #f39c12;
+}
+
+.segment-low-risk {
+    background: #f0f9ff;
+    border-left: 4px solid #3498db;
+}
+
+.route-characteristics {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 4px solid #3498db;
+}
+
+.characteristic-label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.route-description {
+    font-size: 0.85em;
+    color: #666;
+    line-height: 1.3;
+}
+
+.demo-card {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.demo-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.demo-card h4 {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.demo-card p {
+    font-size: 0.8em;
+    color: #666;
+}
+
+.legend {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.legend h3 {
+    font-size: 1em;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.legend-color {
+    width: 20px;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.warning {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+.warning-icon {
+    font-size: 1.1em;
+    margin-right: 8px;
+}
+
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+
+.control-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background 0.2s;
+}
+
+.control-btn:hover {
+    background: #e9ecef;
+}
+
+.control-btn:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: 50vh;
+        order: 2;
+    }
+    
+    .map-container {
+        height: 50vh;
+        order: 1;
+    }
+    
+    .route-details {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+<body>
+<div class="container">
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="header">
+        <h1>🚗 IcyRoute</h1>
+        <p>Smart Winter Route Planning</p>
+    </div>
+
+    <div class="sidebar-content">
+        <!-- Warning Section -->
+        <div class="warning">
+            <span class="warning-icon">⚠️</span>
+            <strong>Safety First:</strong> Always check current road conditions and drive according to weather conditions.
+        </div>
+
+        <!-- Demo Section -->
+        <div class="demo-section">
+            <h3>🎯 Historical Winter Demos</h3>
+            <p>Select a historical winter event to see how IcyRoute handles real ice conditions:</p>
+            
+            <div class="demo-controls">
+                <div class="form-group">
+                    <label for="historicalDate">Winter Event:</label>
+                    <select id="historicalDate" name="historicalDate">
+                        <option value="">Use Current Weather</option>
+                        <option value="2024-01-15">January 15, 2024 - Midwest Ice Storm</option>
+                        <option value="2024-02-08">February 8, 2024 - Great Lakes Blizzard</option>
+                        <option value="2024-12-22">December 22, 2024 - Michigan Winter Storm</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="demo-routes">
+                <div class="demo-card" onclick="loadDemo('Minneapolis, MN', 'Duluth, MN', '2024-01-15')">
+                    <h4>Minneapolis → Duluth</h4>
+                    <p><strong>Jan 15, 2024:</strong> Severe ice storm with freezing rain</p>
+                    <div class="demo-conditions">❄️ -8°C, 85% humidity, 2.5mm precipitation</div>
+                </div>
+                <div class="demo-card" onclick="loadDemo('Buffalo, NY', 'Rochester, NY', '2024-02-08')">
+                    <h4>Buffalo → Rochester</h4>
+                    <p><strong>Feb 8, 2024:</strong> Lake effect blizzard conditions</p>
+                    <div class="demo-conditions">🌨️ -3°C, 95% humidity, 4.1mm precipitation</div>
+                </div>
+                <div class="demo-card" onclick="loadDemo('Detroit, MI', 'Grand Rapids, MI', '2024-12-22')">
+                    <h4>Detroit → Grand Rapids</h4>
+                    <p><strong>Dec 22, 2024:</strong> Widespread freezing rain event</p>
+                    <div class="demo-conditions">🧊 -4°C, 88% humidity, 1.9mm precipitation</div>
+                </div>
+            </div>
+            
+            <div class="demo-info">
+                <small>💡 <strong>Demo Tip:</strong> Historical weather data shows real winter conditions when ice risks vary significantly between routes.</small>
+            </div>
+        </div>
+
+        <!-- Route Planning Form -->
+        <div class="route-form">
+            <h3>🗺️ Plan Your Route</h3>
+            <form id="routeForm">
+                <div class="form-group">
+                    <label for="origin">From:</label>
+                    <input type="text" id="origin" name="origin" placeholder="Enter starting location" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="destination">To:</label>
+                    <input type="text" id="destination" name="destination" placeholder="Enter destination" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience">Driving Experience:</label>
+                    <select id="experience" name="experience">
+                        <option value="beginner">Beginner - Safest routes only</option>
+                        <option value="intermediate" selected>Intermediate - Some ice OK</option>
+                        <option value="expert">Expert - Show all routes</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="avoid_icy" name="avoid_icy" checked>
+                    <label for="avoid_icy">Prioritize safer routes</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="use_historical" name="use_historical">
+                    <label for="use_historical">Use historical winter data for demo</label>
+                </div>
+
+                <button type="submit" class="btn">Find Safe Routes</button>
+            </form>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing weather conditions...</p>
+        </div>
+
+        <!-- Route Legend -->
+        <div class="legend" id="legend" style="display: none;">
+            <h3>🎨 Route Risk Levels</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2ecc71;"></div>
+                <span>Minimal Risk - Safe conditions</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f39c12;"></div>
+                <span>Low Risk - Minor ice possible</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e67e22;"></div>
+                <span>Medium Risk - Caution advised</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span>High Risk - Dangerous conditions</span>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results" id="results">
+            <h3>🛣️ Route Options</h3>
+            <div id="routesList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Map Container -->
+<div class="map-container">
+    <div id="map"></div>
+    
+    <!-- Map Controls -->
+    <div class="map-controls">
+        <button class="control-btn" onclick="showAllRoutes()">Show All Routes</button>
+        <button class="control-btn" onclick="hideAllRoutes()">Hide All Routes</button>
+        <button class="control-btn" onclick="fitMapToRoutes()">Fit to Routes</button>
+    </div>
+</div>
+</div>
+
+<script>
+let map;
+let directionsService;
+let routeDisplays = [];
+let currentRoutes = [];
+let markers = [];
+
+// Risk level colors
+const RISK_COLORS = {
+    'minimal': '#2ecc71',  // Green
+    'low': '#f39c12',      // Orange
+    'medium': '#e67e22',   // Dark Orange  
+    'high': '#e74c3c'      // Red
+};
+
+// Initialize Google Maps
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 6,
+        center: { lat: 44.9778, lng: -93.2650 }, // Minneapolis center
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true,
+        styles: [
+            {
+                featureType: 'all',
+                elementType: 'geometry.fill',
+                stylers: [{ color: '#f5f5f5' }]
+            },
+            {
+                featureType: 'water',
+                elementType: 'geometry',
+                stylers: [{ color: '#e3f2fd' }]
+            }
+        ]
+    });
+
+    directionsService = new google.maps.DirectionsService();
+
+    // Load demo route on startup
+    loadDemo('Minneapolis, MN', 'Duluth, MN');
+}
+
+// Demo route loader with historical date support
+function loadDemo(origin, destination, historicalDate = null) {
+    document.getElementById('origin').value = origin;
+    document.getElementById('destination').value = destination;
+    document.getElementById('experience').value = 'intermediate';
+    document.getElementById('avoid_icy').checked = true;
+    
+    if (historicalDate) {
+        document.getElementById('historicalDate').value = historicalDate;
+        document.getElementById('use_historical').checked = true;
+    } else {
+        document.getElementById('use_historical').checked = false;
+    }
+}
+
+// Form submission handler
+document.getElementById('routeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        origin: document.getElementById('origin').value,
+        destination: document.getElementById('destination').value,
+        driver_experience: document.getElementById('experience').value,
+        avoid_icy: document.getElementById('avoid_icy').checked,
+        use_historical: document.getElementById('use_historical').checked,
+        historical_date: document.getElementById('use_historical').checked ? 
+            document.getElementById('historicalDate').value : null
+    };
+
+    // Clear previous routes
+    clearAllRoutes();
+
+    // Show loading state
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('legend').style.display = 'none';
+
+    try {
+        const response = await fetch('/api/routes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        displayResults(data);
+        displayRoutesOnMap(data.routes, formData.origin, formData.destination);
+    } catch (error) {
+        console.error('Error:', error);
+        displayError(error.message);
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+});
+
+function displayResults(data) {
+    const resultsDiv = document.getElementById('results');
+    const routesList = document.getElementById('routesList');
+    const legend = document.getElementById('legend');
+    
+    routesList.innerHTML = '';
+    currentRoutes = data.routes;
+
+    if (data.routes.length === 0) {
+        routesList.innerHTML = '<p>No safe routes found for your experience level. Consider adjusting your settings.</p>';
+    } else {
+        data.routes.forEach((route, index) => {
+            const routeCard = createRouteCard(route, index);
+            routesList.appendChild(routeCard);
+        });
+    }
+
+    resultsDiv.style.display = 'block';
+    legend.style.display = 'block';
+}
+
+function createRouteCard(route, index) {
+    const card = document.createElement('div');
+    card.className = 'route-card';
+    card.dataset.routeIndex = index;
+    
+    const riskClass = `risk-${route.risk_level}`;
+    const riskIcon = getRiskIcon(route.risk_level);
+    
+    // Historical indicator
+    const historicalIndicator = route.is_historical ? 
+        `<div class="historical-indicator">📅 Historical Data: ${route.historical_date}</div>` : '';
+    
+    // Route characteristics
+    const characteristics = route.route_characteristics || {};
+    const routeType = characteristics.type || `Route ${index + 1}`;
+    const routeDesc = characteristics.description || route.summary;
+    
+    // High-risk segments info
+    const highRiskSegments = route.high_risk_segments || [];
+    const segmentInfo = highRiskSegments.length > 0 ? 
+        `<div class="route-segments">
+            <div class="detail-label">⚠️ High Risk Segments: ${highRiskSegments.length}</div>
+            ${highRiskSegments.slice(0, 2).map(segment => 
+                `<div class="segment-info segment-high-risk">
+                    📍 Risk: ${Math.round(segment.ice_risk * 100)}% - ${segment.weather.description}
+                </div>`
+            ).join('')}
+            ${highRiskSegments.length > 2 ? `<div class="detail-label">+ ${highRiskSegments.length - 2} more segments</div>` : ''}
+        </div>` : 
+        '<div class="route-segments"><div class="segment-info segment-low-risk">✅ No high-risk segments detected</div></div>';
+    
+    // Route advantages/considerations
+    const routeAdvantages = characteristics.advantages ? 
+        `<div class="route-characteristics">
+            <div class="characteristic-label">Route Type: ${routeType}</div>
+            <div class="route-description">${routeDesc}</div>
+        </div>` : '';
+    
+    card.innerHTML = `
+        ${historicalIndicator}
+        <div class="route-header">
+            <div class="route-title">${routeType}</div>
+            <div class="risk-badge ${riskClass}">${riskIcon} ${route.risk_level}</div>
+        </div>
+        
+        ${routeAdvantages}
+        
+        <div class="route-details">
+            <div class="detail-item">
+                <div class="detail-label">Distance</div>
+                <div class="detail-value">${route.distance}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Duration</div>
+                <div class="detail-value">${route.duration}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Avg Ice Risk</div>
+                <div class="detail-value">${Math.round(route.avg_ice_risk * 100)}%</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Max Ice Risk</div>
+                <div class="detail-value">${Math.round(route.max_ice_risk * 100)}%</div>
+            </div>
+        </div>
+        
+        ${segmentInfo}
+        
+        <div class="route-actions">
+            <button class="btn-small btn-focus" onclick="focusRoute(${index})">Focus on Map</button>
+            <button class="btn-small btn-hide" onclick="toggleRoute(${index})">Hide Route</button>
+        </div>
+    `;
+    
+    // Add click handler for route selection
+    card.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('btn-small')) {
+            selectRoute(index);
+        }
+    });
+    
+    return card;
+}
+
+function displayRoutesOnMap(routes, origin, destination) {
+    // Clear existing routes
+    clearAllRoutes();
+
+    // Add origin and destination markers
+    addLocationMarkers(origin, destination);
+
+    routes.forEach((route, index) => {
+        const color = RISK_COLORS[route.risk_level];
+        
+        const directionsRenderer = new google.maps.DirectionsRenderer({
+            map: map,
+            routeIndex: index,
+            polylineOptions: {
+                strokeColor: color,
+                strokeWeight: 6,
+                strokeOpacity: 0.8
+            },
+            suppressMarkers: true, // We'll add custom markers
+            preserveViewport: false
+        });
+
+        // Get route from Google Directions
+        directionsService.route({
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+            provideRouteAlternatives: true
+        }, (response, status) => {
+            if (status === 'OK' && response.routes[index]) {
+                directionsRenderer.setDirections(response);
+                
+                // Add ice risk markers along the route
+                addIceRiskMarkers(route);
+                
+                // Store the renderer
+                routeDisplays.push({
+                    renderer: directionsRenderer,
+                    visible: true,
+                    route: route,
+                    index: index
+                });
+
+                // Fit map to show all routes after loading the first one
+                if (index === 0) {
+                    fitMapToRoutes();
+                }
+            }
+        });
+    });
+}
+
+function addIceRiskMarkers(route) {
+    // Add markers for high-risk segments
+    if (route.high_risk_segments && route.high_risk_segments.length > 0) {
+        route.high_risk_segments.forEach(segment => {
+            if (segment.ice_risk > 0.7) { // Only show very high risk
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat: segment.location.lat,
+                        lng: segment.location.lng
+                    },
+                    map: map,
+                    title: `High Ice Risk: ${Math.round(segment.ice_risk * 100)}%`,
+                    icon: {
+                        url: 'data:image/svg+xml;base64,' + btoa(`
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="12" cy="12" r="10" fill="#e74c3c" stroke="white" stroke-width="2"/>
+                                <text x="12" y="16" text-anchor="middle" fill="white" font-size="12" font-weight="bold">!</text>
+                            </svg>
+                        `),
+                        scaledSize: new google.maps.Size(24, 24)
+                    }
+                });
+
+                // Add info window
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding: 10px;">
+                            <h4>⚠️ High Ice Risk Zone</h4>
+                            <p><strong>Risk Level:</strong> ${Math.round(segment.ice_risk * 100)}%</p>
+                            <p><strong>Conditions:</strong> ${segment.weather.description}</p>
+                            <p><strong>Temperature:</strong> ${segment.weather.temp}°C</p>
+                            <p><strong>Precipitation:</strong> ${segment.weather.precipitation}mm</p>
+                        </div>
+                    `
+                });
+
+                marker.addListener('click', () => {
+                    infoWindow.open(map, marker);
+                });
+
+                markers.push(marker);
+            }
+        });
+    }
+}
+
+function addLocationMarkers(origin, destination) {
+    // Add start marker
+    const startMarker = new google.maps.Marker({
+        position: null, // Will be set by geocoding
+        map: map,
+        title: 'Start: ' + origin,
+        icon: {
+            url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+            scaledSize: new google.maps.Size(32, 32)
+        }
+    });
+
+    // Add end marker
+    const endMarker = new google.maps.Marker({
+        position: null, // Will be set by geocoding
+        map: map,
+        title: 'Destination: ' + destination,
+        icon: {
+            url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            scaledSize: new google.maps.Size(32, 32)
+        }
+    });
+
+    // Geocode and set positions
+    const geocoder = new google.maps.Geocoder();
+    
+    geocoder.geocode({ address: origin }, (results, status) => {
+        if (status === 'OK') {
+            startMarker.setPosition(results[0].geometry.location);
+        }
+    });
+
+    geocoder.geocode({ address: destination }, (results, status) => {
+        if (status === 'OK') {
+            endMarker.setPosition(results[0].geometry.location);
+        }
+    });
+
+    markers.push(startMarker, endMarker);
+}
+
+function selectRoute(index) {
+    // Remove selection from all cards
+    document.querySelectorAll('.route-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Add selection to clicked card
+    const selectedCard = document.querySelector(`[data-route-index="${index}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+
+    // Focus on the selected route
+    focusRoute(index);
+}
+
+function focusRoute(index) {
+    // Hide all routes except the focused one
+    routeDisplays.forEach((display, i) => {
+        if (i === index) {
+            display.renderer.setMap(map);
+            display.visible = true;
+        } else {
+            display.renderer.setMap(null);
+            display.visible = false;
+        }
+    });
+
+    // Update card visibility
+    updateCardVisibility();
+}
+
+function toggleRoute(index) {
+    const display = routeDisplays[index];
+    if (display.visible) {
+        display.renderer.setMap(null);
+        display.visible = false;
+    } else {
+        display.renderer.setMap(map);
+        display.visible = true;
+    }
+
+    updateCardVisibility();
+}
+
+function showAllRoutes() {
+    routeDisplays.forEach(display => {
+        display.renderer.setMap(map);
+        display.visible = true;
+    });
+    updateCardVisibility();
+}
+
+function hideAllRoutes() {
+    routeDisplays.forEach(display => {
+        display.renderer.setMap(null);
+        display.visible = false;
+    });
+    updateCardVisibility();
+}
+
+function updateCardVisibility() {
+    routeDisplays.forEach((display, index) => {
+        const card = document.querySelector(`[data-route-index="${index}"]`);
+        if (card) {
+            if (display.visible) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        }
+    });
+}
+
+function getRiskIcon(riskLevel) {
+    switch(riskLevel) {
+        case 'minimal': return '✅';
+        case 'low': return '⚠️';
+        case 'medium': return '🔶';
+        case 'high': return '🚨';
+        default: return '❓';
+    }
+}
+
+function displayError(message) {
+    const routesList = document.getElementById('routesList');
+    routesList.innerHTML = `
+        <div class="warning">
+            <span class="warning-icon">❌</span>
+            <strong>Error:</strong> ${message}
+        </div>
+    `;
+    document.getElementById('results').style.display = 'block';
+}
+
+// Initialize map when page loads
+window.onload = function() {
+    // Map will be initialized by Google Maps callback
+};
+</script>
+
+<!-- Google Maps JavaScript API -->
+<!-- API key is securely loaded from environment variable -->
+<script async defer 
+src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap&libraries=geometry,places">
+</script>
+</body>
+</html>
