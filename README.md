@@ -99,37 +99,35 @@ Open your browser and navigate to:
 http://localhost:5000
 ```
 
-## 📁 Project Structure
 
-```
-Google_maps_platform_hackathon/
-├── README.md                 # Project documentation
-├── requirements.txt          # Python dependencies
-├── .env                     # Environment variables (create this)
-├── .gitignore              # Git ignore file
-├── app.py                  # Main Flask application
-└── templates/
-    └── index.html          # Web interface template
-```
 
-## 🧪 Demo Routes
+### Historical Winter Storm Simulations
+Our demo showcases real winter weather events with dramatic route variations:
 
-The application includes pre-configured demo routes in high ice-risk areas:
+#### 🌨️ Minneapolis, MN → Duluth, MN
+- **January 2024 Ice Storm**: I-35 corridor extreme conditions
+- **Route Variations**: Highway (safer, longer) vs County Roads (risky, shorter)
+- **Risk Range**: 25% to 90% ice risk between route options
 
-### 🌨️ Minneapolis, MN → Duluth, MN
-- **I-35 corridor** known for severe ice storms
-- **Lake effect weather** conditions
-- **Historical accident data** shows high winter risk
+#### 🌨️ Buffalo, NY → Syracuse, NY  
+- **February 2024 Lake Effect Snow**: Severe visibility and ice conditions
+- **Geographic Intelligence**: Lake effect snow belt routing
+- **Experience Filtering**: 3-5 route options based on driver skill
 
-### 🌨️ Buffalo, NY → Rochester, NY
-- **Lake effect snow/ice** region
-- **Heavy winter precipitation** patterns
-- **Frequent freezing rain** events
+#### 🌨️ Detroit, MI → Grand Rapids, MI
+- **December 2023 Freezing Rain**: Widespread ice accumulation event
+- **Urban to Rural Transition**: City highways vs rural back roads
+- **Real-time Simulation**: Dynamic weather condition processing
 
-### 🌨️ Detroit, MI → Grand Rapids, MI
-- **Michigan winter conditions** with temperature fluctuations
-- **Frequent freezing rain** and black ice
-- **Urban to rural** transition weather patterns
+#### 🌨️ Denver, CO → Vail, CO
+- **January 2024 Mountain Blizzard**: Extreme elevation and weather challenges
+- **Mountain Pass Analysis**: Elevation-based risk assessment
+- **Route Complexity**: Interstate vs mountain passes vs valley routes
+
+#### 🌨️ Fargo, ND → Minneapolis, MN
+- **February 2024 Arctic Blast**: Extreme cold with wind chill factors
+- **Interstate vs County**: Major highway vs rural road risk comparison
+- **Temperature Gradients**: Geographic temperature variation modeling
 
 
 ### Route Filtering by Experience Level
@@ -163,10 +161,9 @@ The application includes pre-configured demo routes in high ice-risk areas:
 ## 📊 Data Sources & APIs
 
 ### Weather Data Integration
-- **Primary**: Google Weather API (when available)
-- **Fallback**: Realistic weather simulation for demo purposes
+- **Primary**: Google Weather API
 - **Update Frequency**: Real-time data processing
-- **Geographic Coverage**: Focus on North American winter regions
+- **Geographic Coverage**: Wherever Google weather api provides weather data
 
 ### Route Calculation
 - **Algorithm**: Google Directions API with multiple alternatives
@@ -193,27 +190,7 @@ The application includes pre-configured demo routes in high ice-risk areas:
 - **Emergency Services**: Integration with road maintenance crews
 - **Insurance Integration**: Risk assessment for insurance companies
 
-## 🔐 Security & Best Practices
 
-### Environment Variables
-```bash
-# .env file structure
-GOOGLE_MAPS_API_KEY=your_api_key_here
-FLASK_ENV=development
-FLASK_DEBUG=True
-```
-
-### API Key Security
-- ✅ Never commit API keys to version control
-- ✅ Use environment variables for all sensitive data
-- ✅ Implement API key restrictions in Google Cloud Console
-- ✅ Add rate limiting for production deployments
-
-### Production Considerations
-- ✅ Enable HTTPS for all API communications
-- ✅ Implement proper error handling and logging
-- ✅ Add user authentication for personalized features
-- ✅ Set up monitoring and alerting
 
 ## 🛠️ Development Setup
 
@@ -242,14 +219,6 @@ Flask==2.3.3              # Web framework
 googlemaps==4.10.0         # Google Maps API client
 requests==2.31.0           # HTTP requests
 python-dotenv==1.0.0       # Environment variable management
-```
-
-### Optional Dependencies
-```txt
-gunicorn==20.1.0          # Production WSGI server
-pytest==7.4.0            # Testing framework
-black==23.3.0             # Code formatting
-flake8==6.0.0            # Code linting
 ```
 
 ## 🐛 Troubleshooting
@@ -286,13 +255,6 @@ flake8==6.0.0            # Code linting
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-
-### Development Workflow
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ## 🏆 Hackathon Submission
 
