@@ -770,8 +770,113 @@ function displayError(message) {
 }
 
 
+// function compareRoutes() {
+//     console.log('compareRoutes() called'); // Debug log
+    
+//     if (!currentRoutes || currentRoutes.length < 2) {
+//         console.warn('Need at least 2 routes to compare. Current routes:', currentRoutes?.length || 0);
+//         alert('Please generate at least 2 routes before comparing.');
+//         return;
+//     }
+
+//     const comparison = currentRoutes.map((route, index) => {
+//         return {
+//             index: index + 1,
+//             name: route.summary || `Route ${index + 1}`,
+//             distance: route.distance || 'N/A',
+//             duration: route.duration || 'N/A',
+//             risk: Math.round((route.avg_ice_risk || 0) * 100),
+//             type: route.route_type || 'mixed',
+//             maxRisk: Math.round((route.max_ice_risk || 0) * 100),
+//             riskLevel: route.risk_level || 'unknown'
+//         };
+//     });
+
+//     console.log('Route comparison data:', comparison);
+//     console.table(comparison);
+//     showRouteComparison(comparison);
+// }
+
+// function showRouteComparison(comparison) {
+//     console.log('showRouteComparison() called with:', comparison);
+    
+//     // Remove existing comparison if it exists
+//     const existingComparison = document.getElementById('route-comparison');
+//     if (existingComparison) {
+//         existingComparison.remove();
+//     }
+
+//     const comparisonHTML = `
+//         <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #3498db; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+//             <h4 style="margin: 0 0 10px 0; color: #3498db;">📊 Route Comparison</h4>
+//             <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+//                 <thead>
+//                     <tr style="background: #f8f9fa;">
+//                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Route</th>
+//                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Distance</th>
+//                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Time</th>
+//                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Avg Risk</th>
+//                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Max Risk</th>
+//                         <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Risk Level</th>
+//                     </tr>
+//                 </thead>
+//                 <tbody>
+//                     ${comparison.map(route => `
+//                         <tr style="cursor: pointer;" onclick="focusRoute(${route.index - 1})" title="Click to focus on this route">
+//                             <td style="padding: 8px; border: 1px solid #ddd;"><strong>${route.name}</strong></td>
+//                             <td style="padding: 8px; border: 1px solid #ddd;">${route.distance}</td>
+//                             <td style="padding: 8px; border: 1px solid #ddd;">${route.duration}</td>
+//                             <td style="padding: 8px; border: 1px solid #ddd; color: ${getRiskColor(route.risk)};">
+//                                 <strong>${route.risk}%</strong>
+//                             </td>
+//                             <td style="padding: 8px; border: 1px solid #ddd; color: ${getRiskColor(route.maxRisk)};">
+//                                 <strong>${route.maxRisk}%</strong>
+//                             </td>
+//                             <td style="padding: 8px; border: 1px solid #ddd;">
+//                                 <span style="background: ${RISK_COLORS[route.riskLevel] || '#gray'}; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">
+//                                     ${route.riskLevel.toUpperCase()}
+//                                 </span>
+//                             </td>
+//                         </tr>
+//                     `).join('')}
+//                 </tbody>
+//             </table>
+//             <div style="margin-top: 8px; font-size: 11px; color: #666;">
+//                 💡 Click on any row to focus on that route on the map
+//             </div>
+//             <button onclick="document.getElementById('route-comparison').remove()" 
+//                     style="margin-top: 8px; padding: 4px 8px; background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">
+//                 Close Comparison
+//             </button>
+//         </div>
+//     `;
+
+//     const resultsDiv = document.getElementById('results');
+//     if (resultsDiv) {
+//         const comparisonDiv = document.createElement('div');
+//         comparisonDiv.id = 'route-comparison';
+//         comparisonDiv.innerHTML = comparisonHTML;
+        
+//         const routesList = document.getElementById('routesList');
+//         if (routesList) {
+//             resultsDiv.insertBefore(comparisonDiv, routesList);
+//             console.log('Route comparison table added to DOM');
+//         } else {
+//             resultsDiv.appendChild(comparisonDiv);
+//             console.log('Route comparison table appended to results div');
+//         }
+        
+//         // Scroll to the comparison table
+//         comparisonDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+//     } else {
+//         console.error('Results div not found');
+//         alert('Error: Could not display route comparison table');
+//     }
+// }
+
+// 1. Fix the compareRoutes() function to handle risk percentages properly
 function compareRoutes() {
-    console.log('compareRoutes() called'); // Debug log
+    console.log('compareRoutes() called');
     
     if (!currentRoutes || currentRoutes.length < 2) {
         console.warn('Need at least 2 routes to compare. Current routes:', currentRoutes?.length || 0);
@@ -780,15 +885,22 @@ function compareRoutes() {
     }
 
     const comparison = currentRoutes.map((route, index) => {
+        // Ensure risk values are between 0 and 100
+        const avgRisk = Math.max(0, Math.min(100, Math.round((route.avg_ice_risk || 0) * 100)));
+        const maxRisk = Math.max(0, Math.min(100, Math.round((route.max_ice_risk || 0) * 100)));
+        
         return {
             index: index + 1,
             name: route.summary || `Route ${index + 1}`,
             distance: route.distance || 'N/A',
             duration: route.duration || 'N/A',
-            risk: Math.round((route.avg_ice_risk || 0) * 100),
+            risk: avgRisk,
             type: route.route_type || 'mixed',
-            maxRisk: Math.round((route.max_ice_risk || 0) * 100),
-            riskLevel: route.risk_level || 'unknown'
+            maxRisk: maxRisk,
+            riskLevel: route.risk_level || 'unknown',
+            // Add raw values for debugging
+            rawDistance: route.raw_distance || 'N/A',
+            rawDuration: route.raw_duration || 'N/A'
         };
     });
 
@@ -797,6 +909,171 @@ function compareRoutes() {
     showRouteComparison(comparison);
 }
 
+// 2. Enhanced route processing to extract actual Google Maps distance/duration
+function createRouteRenderer(route, index, googleResponse, googleRouteIndex) {
+    const color = RISK_COLORS[route.risk_level];
+    const strokeWeight = getStrokeWeight(route, index);
+    const strokePattern = getStrokePattern(route, index);
+    
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        polylineOptions: {
+            strokeColor: color,
+            strokeWeight: strokeWeight,
+            strokeOpacity: 0.9,
+            zIndex: 1000 - index,
+            ...strokePattern
+        },
+        suppressMarkers: true,
+        preserveViewport: true
+    });
+
+    try {
+        directionsRenderer.setDirections(googleResponse);
+        directionsRenderer.setRouteIndex(googleRouteIndex);
+        
+        // Extract actual distance and duration from Google's response
+        const googleRoute = googleResponse.routes[googleRouteIndex];
+        if (googleRoute && googleRoute.legs) {
+            let totalDistance = 0;
+            let totalDuration = 0;
+            
+            googleRoute.legs.forEach(leg => {
+                totalDistance += leg.distance.value; // in meters
+                totalDuration += leg.duration.value; // in seconds
+            });
+            
+            // Update route object with actual Google Maps data
+            route.actual_distance = (totalDistance / 1000).toFixed(1) + ' km';
+            route.actual_duration = formatDuration(totalDuration);
+            route.raw_distance = totalDistance; // meters
+            route.raw_duration = totalDuration; // seconds
+            
+            console.log(`Route ${index + 1} actual data:`, {
+                distance: route.actual_distance,
+                duration: route.actual_duration,
+                originalDistance: route.distance,
+                originalDuration: route.duration
+            });
+        }
+    } catch (error) {
+        console.warn(`Error setting route ${index}:`, error);
+        return;
+    }
+    
+    routeDisplays.push({
+        renderer: directionsRenderer,
+        visible: true,
+        route: route,
+        index: index,
+        googleRoute: googleResponse.routes[googleRouteIndex]
+    });
+}
+
+// 3. Helper function to format duration properly
+function formatDuration(totalSeconds) {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    } else {
+        return `${minutes}m`;
+    }
+}
+
+// 4. Updated route card creation to use actual Google Maps data when available
+function createEnhancedRouteCard(route, index) {
+    const card = document.createElement('div');
+    card.className = 'route-card';
+    card.dataset.routeIndex = index;
+    card.style.setProperty('--risk-color', RISK_COLORS[route.risk_level]);
+    
+    const riskClass = `risk-${route.risk_level}`;
+    const riskIcon = getRiskIcon(route.risk_level);
+    
+    // Use actual Google Maps data if available, otherwise use backend data
+    const displayDistance = route.actual_distance || route.distance;
+    const displayDuration = route.actual_duration || route.duration;
+    
+    // Ensure risk values are properly clamped
+    const avgRisk = Math.max(0, Math.min(100, Math.round((route.avg_ice_risk || 0) * 100)));
+    const maxRisk = Math.max(0, Math.min(100, Math.round((route.max_ice_risk || 0) * 100)));
+    
+    // Sample weather from the route
+    const sampleWeather = route.weather_points && route.weather_points.length > 0 ? 
+                         route.weather_points[Math.floor(route.weather_points.length / 2)] : null;
+    
+    card.innerHTML = `
+        <div class="route-header">
+            <div class="route-title">Route ${index + 1}: ${route.summary}</div>
+            <div class="risk-badge ${riskClass}">${riskIcon} ${route.risk_level.toUpperCase()}</div>
+        </div>
+        
+        <div class="route-details">
+            <div class="detail-item">
+                <div class="detail-label">Distance</div>
+                <div class="detail-value">${displayDistance}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Duration</div>
+                <div class="detail-value">${displayDuration}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Average Risk</div>
+                <div class="detail-value">${avgRisk}%</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Peak Risk</div>
+                <div class="detail-value">${maxRisk}%</div>
+            </div>
+        </div>
+        
+        <div class="risk-details">
+            <h4>⚠️ Risk Analysis</h4>
+            <div class="risk-stats">
+                <div class="risk-stat">
+                    <div class="risk-stat-value">${route.high_risk_segments || 0}</div>
+                    <div class="risk-stat-label">High Risk Segments</div>
+                </div>
+                <div class="risk-stat">
+                    <div class="risk-stat-value">${Math.round((route.risk_variance || 0) * 100)}</div>
+                    <div class="risk-stat-label">Risk Variation</div>
+                </div>
+                <div class="risk-stat">
+                    <div class="risk-stat-value">${route.weather_points ? route.weather_points.length : 0}</div>
+                    <div class="risk-stat-label">Weather Points</div>
+                </div>
+            </div>
+        </div>
+        
+        ${sampleWeather ? `
+        <div class="weather-info">
+            <h5>🌡️ Sample Weather Conditions</h5>
+            <div class="weather-details">
+                ${sampleWeather.weather.temp}°C, ${sampleWeather.weather.description}, 
+                ${sampleWeather.weather.precipitation}mm precipitation, 
+                ${sampleWeather.weather.wind_speed}km/h winds
+            </div>
+        </div>
+        ` : ''}
+        
+        <div class="route-actions">
+            <button class="btn-small btn-focus" onclick="focusRoute(${index})">Focus on Map</button>
+            <button class="btn-small btn-hide" onclick="toggleRoute(${index})">Toggle Route</button>
+        </div>
+    `;
+    
+    card.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('btn-small')) {
+            selectRoute(index);
+        }
+    });
+    
+    return card;
+}
+
+// 5. Updated comparison table to use actual data
 function showRouteComparison(comparison) {
     console.log('showRouteComparison() called with:', comparison);
     
@@ -806,9 +1083,19 @@ function showRouteComparison(comparison) {
         existingComparison.remove();
     }
 
+    // Use actual Google Maps data in comparison if available
+    const enhancedComparison = comparison.map(route => {
+        const routeData = currentRoutes[route.index - 1];
+        return {
+            ...route,
+            distance: routeData.actual_distance || route.distance,
+            duration: routeData.actual_duration || route.duration
+        };
+    });
+
     const comparisonHTML = `
         <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border: 2px solid #3498db; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h4 style="margin: 0 0 10px 0; color: #3498db;">📊 Route Comparison</h4>
+            <h4 style="margin: 0 0 10px 0; color: #3498db;">📊 Route Comparison (Real-time Google Maps Data)</h4>
             <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
                 <thead>
                     <tr style="background: #f8f9fa;">
@@ -821,7 +1108,7 @@ function showRouteComparison(comparison) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${comparison.map(route => `
+                    ${enhancedComparison.map(route => `
                         <tr style="cursor: pointer;" onclick="focusRoute(${route.index - 1})" title="Click to focus on this route">
                             <td style="padding: 8px; border: 1px solid #ddd;"><strong>${route.name}</strong></td>
                             <td style="padding: 8px; border: 1px solid #ddd;">${route.distance}</td>
@@ -842,7 +1129,7 @@ function showRouteComparison(comparison) {
                 </tbody>
             </table>
             <div style="margin-top: 8px; font-size: 11px; color: #666;">
-                💡 Click on any row to focus on that route on the map
+                💡 Distance and time data from Google Maps API • Click on any row to focus on that route
             </div>
             <button onclick="document.getElementById('route-comparison').remove()" 
                     style="margin-top: 8px; padding: 4px 8px; background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">
@@ -873,6 +1160,7 @@ function showRouteComparison(comparison) {
         alert('Error: Could not display route comparison table');
     }
 }
+
 
 // Helper function to get risk color
 function getRiskColor(riskPercentage) {
