@@ -1,5 +1,7 @@
 # 🚗 IcyRoute - Smart Winter Route Planning System
 
+## 🚀 **Live Demo:** [Visit the hosted app on Render](https://google-maps-platform-hackathon.onrender.com/) 🔗
+
 [![Google Maps Platform](https://img.shields.io/badge/Google%20Maps-Platform-4285F4?style=for-the-badge&logo=googlemaps)](https://developers.google.com/maps)
 [![Python](https://img.shields.io/badge/Python-3.7+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
@@ -80,7 +82,7 @@ pip install -r requirements.txt
    - **Places API**
    - **Weather API** (if available)
 4. Create an API key
-5. (Optional) Restrict API key to `http://localhost:5000/*`
+
 
 ### 4. Configure Environment Variables
 Create a `.env` file in the project root:
@@ -203,11 +205,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install development dependencies
 pip install -r requirements.txt
 
-# Set up pre-commit hooks (optional)
-pre-commit install
 
-# Run in development mode
-export FLASK_ENV=development
+# Run in debugger mode
 python app.py
 ```
 
@@ -249,23 +248,13 @@ python-dotenv==1.0.0       # Environment variable management
 - 📖 [Google Maps Platform Documentation](https://developers.google.com/maps)
 - 🆘 [Google Cloud Support](https://console.cloud.google.com/)
 - 💬 [Flask Documentation](https://flask.palletsprojects.com/)
-- 🐛 [Report Issues](https://github.com/yourusername/Google_maps_platform_hackathon/issues)
+
 
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 
-## 🏆 Hackathon Submission
-
-**Built for: Google Maps Platform Awards Hackathon 2025**
-
-This project demonstrates:
-- ✅ Innovative use of Google Maps Platform APIs
-- ✅ Real-world problem solving (winter driving safety)
-- ✅ Technical excellence and code quality
-- ✅ User experience and interface design
-- ✅ Potential for real-world deployment
 
 ## 👥 Team
 

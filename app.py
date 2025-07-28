@@ -3,7 +3,7 @@ import requests
 import json
 import math
 from flask import Flask, render_template, request, jsonify
-from datetime import datetime, timedelta
+from datetime import datetime
 import googlemaps
 from dotenv import load_dotenv
 import random
