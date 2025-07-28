@@ -1013,7 +1013,7 @@ function showRouteComparison(comparison) {
                         <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Time</th>
                         <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Traffic</th>
                         <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Ice Risk</th>
-                        <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Safety Level</th>
+                        <th style="padding: 6px; border: 1px solid #ddd; text-align: left;">Risk Level</th>
                     </tr>
                 </thead>
                 <tbody>

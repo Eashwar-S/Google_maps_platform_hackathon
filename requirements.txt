@@ -4,6 +4,13 @@ googlemaps==4.10.0
 requests==2.31.0
 python-dotenv==1.0.0
 
+# Weather Data Dependencies 
+openmeteo-requests==1.2.0
+requests-cache==1.1.1
+retry-requests==2.0.0
+pandas==2.1.4
+numpy==1.24.4
+
 # Development Dependencies (Optional)
 gunicorn==20.1.0
 pytest==7.4.0
