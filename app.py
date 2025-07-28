@@ -100,67 +100,45 @@ class HistoricalWeatherService:
         return self._fetch_and_cache_historical_data(route_key, cache_file)
     
     def _fetch_and_cache_historical_data(self, route_key, cache_file):
-        """Fetch historical data from OpenMeteo and cache it"""
+        """Fetch historical data from OpenMeteo using actual city coordinates"""
         route_info = self.demo_routes[route_key]
-        bbox = route_info['bbox']
         period = route_info['winter_period']
         
         print(f"Fetching weather data for {route_key} from {period['start']} to {period['end']}")
         
-        # Create a more focused grid of points along typical route corridors
-        lat_points = [bbox['south'] + i * (bbox['north'] - bbox['south']) / 3 for i in range(4)]
-        lng_points = [bbox['west'] + i * (bbox['east'] - bbox['west']) / 3 for i in range(4)]
+        # Use actual cities/towns along the route instead of grid points
+        route_coordinates = self._get_route_city_coordinates(route_key)
         
         all_weather_data = []
         successful_fetches = 0
         
-        for i, lat in enumerate(lat_points):
-            for j, lng in enumerate(lng_points):
-                try:
-                    print(f"Fetching point {successful_fetches + 1}/16: {lat:.3f}, {lng:.3f}")
-                    weather_df = self._fetch_point_historical_weather(
-                        lat, lng, period['start'], period['end']
-                    )
-                    
-                    # Store as dict format compatible with existing code
+        for i, (city_name, lat, lng) in enumerate(route_coordinates):
+            try:
+                print(f"Fetching weather for {city_name} ({lat:.3f}, {lng:.3f})")
+                weather_df = self._fetch_point_historical_weather(lat, lng, period['start'], period['end'])
+                
+                # Check if data is valid (not all NaN)
+                if not weather_df['temperature_mean'].isna().all():
                     weather_station = {
-                        'location': {'lat': lat, 'lng': lng},
+                        'location': {'lat': lat, 'lng': lng, 'city': city_name},
                         'data': weather_df,
-                        'station_id': f"{route_key}_{i}_{j}"
+                        'station_id': f"{route_key}_{i}_{city_name.replace(' ', '_')}"
                     }
                     all_weather_data.append(weather_station)
                     successful_fetches += 1
+                    print(f"✅ Successfully fetched data for {city_name}")
+                else:
+                    print(f"⚠️ No valid data for {city_name} - all NaN values")
                     
-                except Exception as e:
-                    print(f"Error fetching weather for {lat:.3f}, {lng:.3f}: {e}")
-                    continue
+            except Exception as e:
+                print(f"❌ Error fetching weather for {city_name}: {e}")
+                continue
         
-        if successful_fetches == 0:
-            print(f"Warning: No weather data successfully fetched for {route_key}")
-            # Create minimal fallback data
-            center_lat = (bbox['north'] + bbox['south']) / 2
-            center_lng = (bbox['east'] + bbox['west']) / 2
-            
-            dates = pd.date_range(start=period['start'], end=period['end'], freq='D')
-            fallback_df = pd.DataFrame({
-                "date": dates,
-                "temperature_max": [-2] * len(dates),
-                "temperature_min": [-8] * len(dates), 
-                "temperature_mean": [-5] * len(dates),
-                "precipitation_sum": [3.0] * len(dates),
-                "snowfall_sum": [2.0] * len(dates),
-                "rain_sum": [1.0] * len(dates),
-                "humidity_max": [90] * len(dates),
-                "humidity_min": [75] * len(dates),
-                "wind_speed_max": [30] * len(dates),
-                "wind_speed_mean": [20] * len(dates)
-            })
-            
-            all_weather_data.append({
-                'location': {'lat': center_lat, 'lng': center_lng},
-                'data': fallback_df,
-                'station_id': f"{route_key}_fallback"
-            })
+        # If we have fewer than 3 successful stations, add fallback data
+        if successful_fetches < 3:
+            print(f"⚠️ Only {successful_fetches} successful fetches, adding fallback data")
+            fallback_stations = self._create_fallback_weather_stations(route_key, period)
+            all_weather_data.extend(fallback_stations)
         
         # Cache the data
         try:
@@ -172,8 +150,180 @@ class HistoricalWeatherService:
         
         return all_weather_data
     
+    def _get_route_city_coordinates(self, route_key):
+        """Get real city coordinates along each demo route"""
+        
+        route_cities = {
+            'minneapolis_duluth': [
+                ('Minneapolis', 44.9778, -93.2650),
+                ('Anoka', 45.1975, -93.3877),
+                ('Cambridge', 45.5719, -93.2244),
+                ('Mora', 45.8775, -93.2900),
+                ('Hinckley', 46.0116, -92.9444),
+                ('Duluth', 46.7867, -92.1005)
+            ],
+            'buffalo_syracuse': [
+                ('Buffalo', 42.8864, -78.8784),
+                ('Batavia', 42.9981, -78.1875),
+                ('Rochester', 43.1566, -77.6088),
+                ('Geneva', 42.8698, -76.9777),
+                ('Auburn', 42.9317, -76.5660),
+                ('Syracuse', 43.0481, -76.1474)
+            ],
+            'detroit_grandrapids': [
+                ('Detroit', 42.3314, -83.0458),
+                ('Pontiac', 42.6389, -83.2910),
+                ('Flint', 43.0125, -83.6875),
+                ('Lansing', 42.3320, -84.5361),
+                ('Kalamazoo', 42.2917, -85.5872),
+                ('Grand Rapids', 42.9634, -85.6681)
+            ],
+            'denver_vail': [
+                ('Denver', 39.7392, -104.9903),
+                ('Golden', 39.7555, -105.2211),
+                ('Georgetown', 39.7061, -105.6972),
+                ('Keystone', 39.6047, -105.9342),
+                ('Frisco', 39.5744, -106.0953),
+                ('Vail', 39.6403, -106.3742)
+            ]
+        }
+        
+        return route_cities.get(route_key, [])
+
+    
+    def _create_fallback_weather_stations(self, route_key, period):
+        """Create realistic fallback weather data for a route"""
+        route_info = self.demo_routes[route_key]
+        
+        # Create 3 fallback stations along the route
+        bbox = route_info['bbox']
+        start_lat, start_lng = (bbox['south'] + bbox['north']) / 2, bbox['west']
+        mid_lat, mid_lng = (bbox['south'] + bbox['north']) / 2, (bbox['west'] + bbox['east']) / 2
+        end_lat, end_lng = (bbox['south'] + bbox['north']) / 2, bbox['east']
+        
+        fallback_stations = []
+        coordinates = [
+            (start_lat, start_lng, 'start'),
+            (mid_lat, mid_lng, 'middle'), 
+            (end_lat, end_lng, 'end')
+        ]
+        
+        for i, (lat, lng, position) in enumerate(coordinates):
+            dates = pd.date_range(start=period['start'], end=period['end'], freq='D')
+            
+            # Generate realistic winter weather based on route characteristics
+            weather_data = self._generate_realistic_winter_weather(route_key, len(dates))
+            
+            fallback_df = pd.DataFrame({
+                "date": dates,
+                **weather_data
+            })
+            
+            fallback_stations.append({
+                'location': {'lat': lat, 'lng': lng, 'city': f'{route_key}_{position}_fallback'},
+                'data': fallback_df,
+                'station_id': f"{route_key}_fallback_{i}"
+            })
+        
+        return fallback_stations
+
+
+    def _generate_realistic_winter_weather(self, route_key, num_days):
+        """Generate realistic winter weather patterns for fallback"""
+        
+        # Base weather patterns for each route
+        weather_patterns = {
+            'minneapolis_duluth': {
+                'temp_range': (-15, -5),
+                'precip_prob': 0.6,
+                'snow_factor': 0.8
+            },
+            'buffalo_syracuse': {
+                'temp_range': (-8, 2),
+                'precip_prob': 0.7,
+                'snow_factor': 0.9  # Lake effect snow
+            },
+            'detroit_grandrapids': {
+                'temp_range': (-6, 1),
+                'precip_prob': 0.5,
+                'snow_factor': 0.6
+            },
+            'denver_vail': {
+                'temp_range': (-12, -2),
+                'precip_prob': 0.4,
+                'snow_factor': 0.7
+            }
+        }
+        
+        pattern = weather_patterns.get(route_key, weather_patterns['minneapolis_duluth'])
+        
+        # Generate day-by-day weather
+        temp_min = []
+        temp_max = []
+        temp_mean = []
+        precipitation = []
+        snowfall = []
+        rain = []
+        humidity_max = []
+        humidity_min = []
+        wind_max = []
+        wind_mean = []
+        
+        for day in range(num_days):
+            # Temperature with realistic daily variation
+            base_temp = random.uniform(*pattern['temp_range'])
+            daily_variation = random.uniform(3, 8)
+            
+            t_min = base_temp - daily_variation/2
+            t_max = base_temp + daily_variation/2
+            t_mean = (t_min + t_max) / 2
+            
+            temp_min.append(t_min)
+            temp_max.append(t_max)
+            temp_mean.append(t_mean)
+            
+            # Precipitation
+            if random.random() < pattern['precip_prob']:
+                precip = random.uniform(0.5, 4.0)
+                if t_mean < 1 and random.random() < pattern['snow_factor']:
+                    # Snow
+                    snow = precip * random.uniform(0.6, 1.0)
+                    rain_amt = precip - snow
+                else:
+                    # Rain
+                    snow = 0
+                    rain_amt = precip
+            else:
+                precip = 0
+                snow = 0
+                rain_amt = 0
+            
+            precipitation.append(precip)
+            snowfall.append(snow)
+            rain.append(rain_amt)
+            
+            # Humidity and wind
+            humidity_max.append(random.uniform(70, 95))
+            humidity_min.append(random.uniform(30, 70))
+            wind_max.append(random.uniform(15, 35))
+            wind_mean.append(random.uniform(8, 25))
+        
+        return {
+            "temperature_max": temp_max,
+            "temperature_min": temp_min,
+            "temperature_mean": temp_mean,
+            "precipitation_sum": precipitation,
+            "snowfall_sum": snowfall,
+            "rain_sum": rain,
+            "humidity_max": humidity_max,
+            "humidity_min": humidity_min,
+            "wind_speed_max": wind_max,
+            "wind_speed_mean": wind_mean
+        }
+
+
     def _fetch_point_historical_weather(self, lat, lng, start_date, end_date):
-        """Fetch historical weather for a specific point using correct OpenMeteo archive API"""
+        """Fetch historical weather with better error handling and validation"""
         url = "https://archive-api.open-meteo.com/v1/archive"
         params = {
             "latitude": lat,
@@ -181,16 +331,16 @@ class HistoricalWeatherService:
             "start_date": start_date,
             "end_date": end_date,
             "daily": [
-                "temperature_2m_max",       # index 0
-                "temperature_2m_min",       # index 1
-                "temperature_2m_mean",      # index 2
-                "precipitation_sum",        # index 3
-                "snowfall_sum",             # index 4
-                "rain_sum",                 # index 5
-                "relative_humidity_2m_max", # index 6
-                "relative_humidity_2m_min", # index 7
-                "wind_speed_10m_max",       # index 8
-                "wind_speed_10m_mean"       # index 9
+                "temperature_2m_max",
+                "temperature_2m_min", 
+                "temperature_2m_mean",
+                "precipitation_sum",
+                "snowfall_sum",
+                "rain_sum",
+                "relative_humidity_2m_max",
+                "relative_humidity_2m_min",
+                "wind_speed_10m_max",
+                "wind_speed_10m_mean"
             ],
             "timezone": "auto"
         }
@@ -198,7 +348,6 @@ class HistoricalWeatherService:
         try:
             responses = self.openmeteo.weather_api(url, params=params)
             response = responses[0]
-            
             daily = response.Daily()
             
             # Create date range
@@ -209,7 +358,7 @@ class HistoricalWeatherService:
                 inclusive="left"
             )
             
-            # Extract data using correct indices
+            # Extract data with validation
             weather_df = pd.DataFrame({
                 "date": dates,
                 "temperature_max": daily.Variables(0).ValuesAsNumpy(),
@@ -224,26 +373,21 @@ class HistoricalWeatherService:
                 "wind_speed_mean": daily.Variables(9).ValuesAsNumpy()
             })
             
-            print(f"Successfully fetched weather data for {lat}, {lng}: {len(weather_df)} days")
+            # Check if we got valid data
+            if weather_df['temperature_mean'].isna().all():
+                print(f"⚠️ OpenMeteo returned all NaN for coordinates {lat}, {lng}")
+                raise ValueError(f"No weather data available for coordinates {lat}, {lng}")
+            
+            # Fill any individual NaN values with interpolation
+            # weather_df = weather_df.interpolate(method='linear').fillna(method='bfill').fillna(method='ffill')
+            weather_df = weather_df.interpolate(method='linear').bfill().ffill()
+            
+            print(f"✅ Successfully fetched weather data for {lat}, {lng}: {len(weather_df)} days")
             return weather_df
             
         except Exception as e:
-            print(f"Error fetching historical weather for {lat}, {lng}: {e}")
-            # Return fallback data
-            dates = pd.date_range(start=start_date, end=end_date, freq='D')
-            return pd.DataFrame({
-                "date": dates,
-                "temperature_max": [-5] * len(dates),
-                "temperature_min": [-10] * len(dates),
-                "temperature_mean": [-7] * len(dates),
-                "precipitation_sum": [2.0] * len(dates),
-                "snowfall_sum": [1.5] * len(dates),
-                "rain_sum": [0.5] * len(dates),
-                "humidity_max": [85] * len(dates),
-                "humidity_min": [70] * len(dates),
-                "wind_speed_max": [25] * len(dates),
-                "wind_speed_mean": [15] * len(dates)
-            })
+            print(f"❌ Error fetching historical weather for {lat}, {lng}: {e}")
+            raise e  # Re-raise to be handled by calling function
 
 
     def preload_all_demo_data(self):
