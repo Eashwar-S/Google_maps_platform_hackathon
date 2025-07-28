@@ -685,58 +685,85 @@ class IceDetector:
         }
     
     def calculate_ice_risk(self, weather_data, lat, lng, route_context=None, route_type='highway'):
-        """Calculate ice risk based on real weather conditions"""
+        """Calculate ice risk based on real weather conditions with summer handling"""
         temp = weather_data.get('temp', 0)
         humidity = weather_data.get('humidity', 0)
         precipitation = weather_data.get('precipitation', 0)
         snowfall = weather_data.get('snowfall', 0)
         wind_speed = weather_data.get('wind_speed', 0)
         
-        # Base ice risk calculation
-        ice_risk = 0
+        # SUMMER WEATHER CHECK: If temperature is warm, ice risk should be near zero
+        if temp > 15:  # Above 15°C, ice formation is virtually impossible
+            # Only minimal risk from route type modifiers in warm weather
+            route_modifier = self._get_route_type_modifier(route_type, route_context) * 0.1  # Reduce impact
+            return max(0, min(0.05, route_modifier))  # Cap at 5% maximum
         
-        # Temperature factor (highest risk around freezing)
-        if -3 <= temp <= 1:  # Prime ice formation zone
-            ice_risk += 0.6
-        elif -8 <= temp < -3 or 1 < temp <= 4:
-            ice_risk += 0.4
-        elif temp < -15:  # Extreme cold, snow more likely than ice
-            ice_risk += 0.3
+        # MILD WEATHER CHECK: Reduced risk for moderately warm temperatures
+        if temp > 10:  # 5-10°C, very low ice risk
+            base_risk = 0.02  # Start with minimal base risk
+        else:
+            # WINTER/COLD WEATHER: Use full ice risk calculation
+            base_risk = 0
+            
+            # Temperature factor (highest risk around freezing)
+            if -3 <= temp <= 1:  # Prime ice formation zone
+                base_risk += 0.6
+            elif -8 <= temp < -3 or 1 < temp <= 4:
+                base_risk += 0.4
+            elif temp < -15:  # Extreme cold, snow more likely than ice
+                base_risk += 0.3
+            elif temp < 5:  # Cool but not freezing
+                base_risk += 0.1
+            
+            # Humidity factor (only relevant in cold weather)
+            if temp < 5:
+                if humidity > 85:
+                    base_risk += 0.25
+                elif humidity > 70:
+                    base_risk += 0.15
+            
+            # Precipitation and snow factor (only matters if cold enough)
+            if temp < 5:
+                if snowfall > 2:  # Heavy snow
+                    base_risk += 0.3
+                elif snowfall > 0.5:  # Light snow
+                    base_risk += 0.2
+                
+                if precipitation > 1 and temp < 2:  # Rain/sleet near freezing
+                    base_risk += 0.4
+                elif precipitation > 0.2 and temp < 0:  # Light precip below freezing
+                    base_risk += 0.3
+            
+            # Wind factor (only significant in cold weather)
+            if temp < 5:
+                if wind_speed > 25:  # km/h
+                    base_risk += 0.2
+                elif wind_speed > 15:
+                    base_risk += 0.1
         
-        # Humidity factor
-        if humidity > 85:
-            ice_risk += 0.25
-        elif humidity > 70:
-            ice_risk += 0.15
-        
-        # Precipitation and snow factor
-        if snowfall > 2:  # Heavy snow
-            ice_risk += 0.3
-        elif snowfall > 0.5:  # Light snow
-            ice_risk += 0.2
-        
-        if precipitation > 1 and temp < 2:  # Rain/sleet near freezing
-            ice_risk += 0.4
-        elif precipitation > 0.2 and temp < 0:  # Light precip below freezing
-            ice_risk += 0.3
-        
-        # Wind factor (causes rapid temperature changes)
-        if wind_speed > 25:  # km/h
-            ice_risk += 0.2
-        elif wind_speed > 15:
-            ice_risk += 0.1
-        
-        # Route type modifier
+        # Route type modifier (reduced in warm weather)
         route_modifier = self._get_route_type_modifier(route_type, route_context)
-        ice_risk += route_modifier
+        if temp > 5:
+            route_modifier *= 0.2  # Greatly reduce route impact in warm weather
         
-        # Location-specific modifiers
-        ice_risk += self._get_location_modifier(lat, lng, route_context)
+        # Location-specific modifiers (reduced in warm weather)
+        location_modifier = self._get_location_modifier(lat, lng, route_context)
+        if temp > 5:
+            location_modifier *= 0.1  # Minimal location impact in warm weather
         
-        return min(max(ice_risk, 0), 1.0)
+        total_risk = base_risk + route_modifier + location_modifier
+        
+        # Final temperature check to ensure reasonable results
+        if temp > 10:
+            total_risk = min(total_risk, 0.05)  # Max 5% in warm weather
+        elif temp > 5:
+            total_risk = min(total_risk, 0.15)  # Max 15% in mild weather
+        
+        return min(max(total_risk, 0), 1.0)
+
     
     def _get_route_type_modifier(self, route_type, route_context):
-        """Different route types have different inherent risks"""
+        """Different route types have different inherent risks - temperature aware"""
         modifier = 0
         
         if route_type == 'highway':
@@ -761,21 +788,21 @@ class IceDetector:
         return modifier
     
     def _get_location_modifier(self, lat, lng, route_context):
-        """Add location-specific ice risk modifiers"""
+        """Add location-specific ice risk modifiers - reduced in warm weather"""
         modifier = 0
         
-        # Bridge and overpass areas (ice forms first)
+        # Bridge and overpass areas (ice forms first) - but only relevant in cold weather
         if self._is_near_bridge_area(lat, lng):
             modifier += 0.2
         
-        # Northern latitude penalty
+        # Northern latitude penalty - reduced impact
         if lat > 45:  # Northern states
-            modifier += 0.15
+            modifier += 0.08  # Reduced from 0.15
         elif lat > 42:
-            modifier += 0.08
+            modifier += 0.04  # Reduced from 0.08
         
-        # Elevation consideration (rough approximation)
-        elevation_factor = max(0, (lat - 40) * 0.03)
+        # Elevation consideration (minimal impact)
+        elevation_factor = max(0, (lat - 40) * 0.01)  # Reduced from 0.03
         modifier += elevation_factor
         
         return modifier
